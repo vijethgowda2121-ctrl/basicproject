@@ -1,40 +1,24 @@
 import streamlit as st
+from utils.data_loader import load_data
 
-from utils.visualization import (
-    histogram,
-    boxplot,
-    correlation_heatmap
+st.title("📁 Dataset Overview")
+
+file = st.file_uploader(
+    "Upload Dataset",
+    type=["csv", "xlsx"]
 )
 
-st.title("📈 Exploratory Data Analysis")
+if file:
 
-if "data" not in st.session_state:
+    df = load_data(file)
 
-    st.warning("Upload dataset first")
-    st.stop()
+    st.session_state["data"] = df
 
-df = st.session_state["data"]
+    c1,c2,c3,c4 = st.columns(4)
 
-numeric_cols = df.select_dtypes(
-    include="number"
-).columns
+    c1.metric("Rows", len(df))
+    c2.metric("Columns", len(df.columns))
+    c3.metric("Missing", df.isna().sum().sum())
+    c4.metric("Duplicates", df.duplicated().sum())
 
-column = st.selectbox(
-    "Select Numeric Column",
-    numeric_cols
-)
-
-st.plotly_chart(
-    histogram(df,column),
-    use_container_width=True
-)
-
-st.plotly_chart(
-    boxplot(df,column),
-    use_container_width=True
-)
-
-st.plotly_chart(
-    correlation_heatmap(df),
-    use_container_width=True
-)
+    st.dataframe(df.head())
